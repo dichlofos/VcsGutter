@@ -18,13 +18,13 @@ Or you can clone this repo into your *Sublime Text 2/Packages*
 *Mac OS X*
 ```shell
 cd ~/Library/Application\ Support/Sublime\ Text\ 2/Packages/
-git clone git@github.com:bradsokol/VcsGutter.git
+git clone git@github.com:bradsokol/VcsGutter.git VCS\ Gutter
 ```
 
 *Ubuntu*
 ```shell
 cd ~/.config/sublime-text-2/Packages
-git clone git@github.com:bradsokol/VcsGutter.git
+git clone git@github.com:bradsokol/VcsGutter.git VCS\ Gutter
 ```
 
 *Windows*
