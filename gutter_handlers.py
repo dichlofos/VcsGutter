@@ -2,8 +2,8 @@ import os
 import sublime
 import subprocess
 import re
-import vcs_helpers
-from view_collection import ViewCollection
+from VcsGutter import vcs_helpers
+from VcsGutter.view_collection import ViewCollection
 
 
 class VcsGutterHandler(object):
@@ -46,10 +46,9 @@ class VcsGutterHandler(object):
         except UnicodeError:
             # Fallback to utf8-encoding
             contents = self.view.substr(region).encode('utf-8')
-    
-        contents = contents.replace('\r\n', '\n')
-        contents = contents.replace('\r', '\n')
-        f = open(self.buf_temp_file.name, 'w')
+
+        contents = contents.replace(b'\r\n', b'\n')
+        f = open(self.buf_temp_file.name, 'wb')
         f.write(contents)
         f.close()
 
@@ -69,20 +68,21 @@ class VcsGutterHandler(object):
             args = self.get_diff_args()
             try:
                 contents = self.run_command(args)
-                contents = contents.replace('\r\n', '\n')
-                contents = contents.replace('\r', '\n')
-                f = open(self.vcs_temp_file.name, 'w')
+                contents = contents.replace(b'\r\n', b'\n')
+                contents = contents.replace(b'\r', b'\n')
+                f = open(self.vcs_temp_file.name, 'wb')
                 f.write(contents)
                 f.close()
                 ViewCollection.update_vcs_time(self.view)
-            except Exception:
+            except Exception as e:
+                print ("Unable to write vcs file for diff ", e)
                 pass
 
     def process_diff(self, diff_str):
         inserted = []
         modified = []
         deleted = []
-        pattern = re.compile(r'(\d+),?(\d*)(.)(\d+),?(\d*)')
+        pattern = re.compile(b'(\d+),?(\d*)(.)(\d+),?(\d*)')
         lines = diff_str.splitlines()
         for line in lines:
             m = pattern.match(line)
@@ -94,11 +94,11 @@ class VcsGutterHandler(object):
                 line_end = int(m.group(5))
             else:
                 line_end = line_start
-            if kind == 'c':
+            if kind == b'c':
                 modified += range(line_start, line_end + 1)
-            elif kind == 'a':
+            elif kind == b'a':
                 inserted += range(line_start, line_end + 1)
-            elif kind == 'd':
+            elif kind == b'd':
                 if line == 1:
                     deleted.append(line_start)
                 else:
