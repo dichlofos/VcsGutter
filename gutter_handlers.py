@@ -29,20 +29,27 @@ class VcsGutterHandler(object):
         if self.on_disk() and self.vcs_path:
             self.view.window().run_command('vcs_gutter')
 
+    def _get_view_encoding(self):
+        # get encoding and clean it for python ex: "Western (ISO 8859-1)"
+        # original author for this fix : https://github.com/maelnor/
+        pattern = re.compile(r'.+\((.*)\)')
+        encoding = self.view.encoding()
+        if pattern.match(encoding):
+            encoding = pattern.sub(r'\1', encoding)
+
+        encoding = encoding.replace('with BOM', '')
+        encoding = encoding.replace('Windows','cp')
+        encoding = encoding.replace('-','_')
+        encoding = encoding.replace(' ', '')
+        return encoding
+
     def update_buf_file(self):
         chars = self.view.size()
         region = sublime.Region(0, chars)
 
-        # get encoding and clean it for python ex: "Western (ISO 8859-1)"
-        pattern = re.compile(r'.+\((.*)\)')
-        encoding = self.view.encoding()
-
-        if pattern.match(encoding):
-            encoding = pattern.sub(r'\1', self.view.encoding())
-
         # Try conversion
         try:
-            contents = self.view.substr(region).encode(encoding.replace(' ', ''))
+            contents = self.view.substr(region).encode(self._get_view_encoding())
         except UnicodeError:
             # Fallback to utf8-encoding
             contents = self.view.substr(region).encode('utf-8')

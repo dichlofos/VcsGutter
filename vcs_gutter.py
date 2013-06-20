@@ -12,7 +12,7 @@ class VcsGutterCommand(sublime_plugin.WindowCommand):
             # I have only been able to reproduce this in the following scenario:
             # you clicked on FileA in the sidebar (FileA is not previously open)
             # 
-            not to open it but to preview it. While previewing it you press
+            # not to open it but to preview it. While previewing it you press
             # ctrl+` to open a console. With the console selected and the
             # unopened FileA preview showing in the window you click on another
             # unopened file, FileB to preview that file. There will be no active

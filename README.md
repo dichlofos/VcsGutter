@@ -18,16 +18,21 @@ Or you can clone this repo into your *Sublime Text 2/Packages*
 *Mac OS X*
 ```shell
 cd ~/Library/Application\ Support/Sublime\ Text\ 2/Packages/
-git clone git@github.com:bradsokol/VcsGutter.git VCS\ Gutter
+git clone git://github.com/bradsokol/VcsGutter.git "VCS Gutter"
 ```
 
 *Ubuntu*
 ```shell
 cd ~/.config/sublime-text-2/Packages
-git clone git@github.com:bradsokol/VcsGutter.git VCS\ Gutter
+git clone git://github.com/bradsokol/VcsGutter.git "VCS Gutter"
 ```
 
 *Windows*
+
+```shell
+cd %USERPROFILE%\AppData\Roaming\Sublime Text 2\Packages
+git clone git://github.com/bradsokol/VcsGutter.git "VCS Gutter"
+```
 
 VcsGutter assumes that the `git`, `hg`, `svn` and `diff` commands are availible on the command line. The installers for these tools may not add the directory containing the executables to the PATH environment variable. If not, you must add the appropriate directory to your PATH variable.
 
