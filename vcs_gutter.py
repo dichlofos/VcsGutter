@@ -1,6 +1,6 @@
 import sublime
 import sublime_plugin
-from view_collection import ViewCollection
+from VcsGutter.view_collection import ViewCollection
 
 
 class VcsGutterCommand(sublime_plugin.WindowCommand):
