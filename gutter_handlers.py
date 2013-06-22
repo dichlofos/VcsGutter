@@ -2,8 +2,16 @@ import os
 import sublime
 import subprocess
 import re
-from VcsGutter import vcs_helpers
-from VcsGutter.view_collection import ViewCollection
+
+try:
+    from . import vcs_helpers
+except ValueError:
+    import vcs_helpers
+
+try:
+    from .view_collection import ViewCollection
+except ValueError:
+    from view_collection import ViewCollection
 
 
 class VcsGutterHandler(object):
@@ -26,7 +34,7 @@ class VcsGutterHandler(object):
         return self.vcs_path
 
     def reset(self):
-        if self.on_disk() and self.vcs_path:
+        if self.on_disk() and self.vcs_path and self.view.window() is not None:
             self.view.window().run_command('vcs_gutter')
 
     def _get_view_encoding(self):
@@ -38,8 +46,8 @@ class VcsGutterHandler(object):
             encoding = pattern.sub(r'\1', encoding)
 
         encoding = encoding.replace('with BOM', '')
-        encoding = encoding.replace('Windows','cp')
-        encoding = encoding.replace('-','_')
+        encoding = encoding.replace('Windows', 'cp')
+        encoding = encoding.replace('-', '_')
         encoding = encoding.replace(' ', '')
         return encoding
 
@@ -82,8 +90,7 @@ class VcsGutterHandler(object):
                 f.close()
                 ViewCollection.update_vcs_time(self.view)
             except Exception as e:
-                print ("Unable to write vcs file for diff ", e)
-                pass
+                print ("Unable to write file for diff ", e)
 
     def process_diff(self, diff_str):
         inserted = []
@@ -139,7 +146,7 @@ class VcsGutterHandler(object):
             startupinfo = subprocess.STARTUPINFO()
             startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
         proc = subprocess.Popen(args, stdout=subprocess.PIPE,
-            startupinfo=startupinfo)
+                                startupinfo=startupinfo)
         return proc.stdout.read()
 
 

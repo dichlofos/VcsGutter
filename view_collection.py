@@ -1,9 +1,10 @@
 import tempfile
 import time
 
-from VcsGutter.vcs_helpers import GitHelper
-from VcsGutter.vcs_helpers import HgHelper
-from VcsGutter.vcs_helpers import SvnHelper
+try:
+    from .vcs_helpers import GitHelper, HgHelper, SvnHelper
+except ValueError:
+    from vcs_helpers import GitHelper, HgHelper, SvnHelper
 
 
 class ViewCollection:
@@ -14,9 +15,11 @@ class ViewCollection:
 
     @staticmethod
     def add(view):
-        from VcsGutter.gutter_handlers import GitGutterHandler
-        from VcsGutter.gutter_handlers import HgGutterHandler
-        from VcsGutter.gutter_handlers import SvnGutterHandler
+        try:
+            from .gutter_handlers import GitGutterHandler, HgGutterHandler, SvnGutterHandler
+        except ValueError:
+            from gutter_handlers import GitGutterHandler, HgGutterHandler, SvnGutterHandler
+
         handler = None
         if GitHelper.is_git_repository(view):
             handler = GitGutterHandler(view)

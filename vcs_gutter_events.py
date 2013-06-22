@@ -1,5 +1,9 @@
 import sublime_plugin
-from VcsGutter.view_collection import ViewCollection
+
+try:
+    from .view_collection import ViewCollection
+except ValueError:
+    from view_collection import ViewCollection
 
 
 class VcsGutterEvents(sublime_plugin.EventListener):
