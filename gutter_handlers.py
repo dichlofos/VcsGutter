@@ -15,8 +15,9 @@ except ValueError:
 
 
 class VcsGutterHandler(object):
-    def __init__(self, view):
+    def __init__(self, view, exc_path):
         self.view = view
+        self.exc_path = exc_path
         self.vcs_temp_file = ViewCollection.vcs_tmp_file(self.view)
         self.buf_temp_file = ViewCollection.buf_tmp_file(self.view)
 
@@ -156,7 +157,7 @@ class GitGutterHandler(VcsGutterHandler):
 
     def get_diff_args(self):
         args = [
-            'git',
+            self.exc_path,
             '--git-dir=' + self.vcs_dir,
             '--work-tree=' + self.vcs_tree,
             'show',
@@ -171,7 +172,7 @@ class HgGutterHandler(VcsGutterHandler):
 
     def get_diff_args(self):
         args = [
-            'hg',
+            self.exc_path,
             '--repository',
             self.vcs_tree,
             'cat',
@@ -186,7 +187,7 @@ class SvnGutterHandler(VcsGutterHandler):
 
     def get_diff_args(self):
         args = [
-            'svn',
+            self.exc_path,
             'cat',
             os.path.join(self.vcs_tree, self.vcs_path),
         ]

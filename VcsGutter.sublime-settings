@@ -1,0 +1,16 @@
+{
+    // Live mode evaluates changes every time file is modified,
+    // Set false to disable evaluation after each input
+    "live_mode": true,
+
+    // Paths to various keys commands. Modify if the executable
+    // is not in your path.
+    //
+    // Format is [key, path_to_executable]
+    // e.g. "git": /usr/bin/git" or "git": "C:\bin\git.exe"
+    "vcs_paths": {
+        "git": "git",
+        "hg": "hg",
+        "svn": "svn"
+    }
+}

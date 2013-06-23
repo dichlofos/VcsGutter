@@ -1,6 +1,8 @@
 import tempfile
 import time
 
+import sublime
+
 try:
     from .vcs_helpers import GitHelper, HgHelper, SvnHelper
 except ValueError:
@@ -20,13 +22,20 @@ class ViewCollection:
         except ValueError:
             from gutter_handlers import GitGutterHandler, HgGutterHandler, SvnGutterHandler
 
+        settings = sublime.load_settings('VcsGutter.sublime-settings')
+        vcs_paths = settings.get('vcs_paths', [
+            ["git", "git"],
+            ["hg", "hg"],
+            ["svn", "svn"]
+        ])
+
         handler = None
         if GitHelper.is_git_repository(view):
-            handler = GitGutterHandler(view)
+            handler = GitGutterHandler(view, vcs_paths['git'])
         elif HgHelper.is_hg_repository(view):
-            handler = HgGutterHandler(view)
+            handler = HgGutterHandler(view, vcs_paths['hg'])
         elif SvnHelper.is_svn_repository(view):
-            handler = SvnGutterHandler(view)
+            handler = SvnGutterHandler(view, vcs_paths['svn'])
 
         # If no handler found then either the view does not represent a
         # file on disk (e.g. not yet saved) or the file is not in a supported
