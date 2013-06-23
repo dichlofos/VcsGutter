@@ -2,8 +2,8 @@
 
 **Now supporting Sublime Text 3.**
 
-VCS Gutter is a plugin for Sublime Text that shows an icon in the gutter area indicating whether a line has been inserted, modified or deleted relative to the version of the file in the local source
-code repository. Supports Git and Mercurial, and Subversion.
+VCS Gutter is a plugin for Sublime Text 2 and 3 that displays an icon in the gutter area indicating whether a line has been inserted, modified or deleted relative to the version of the file in the local source
+code repository. Supports Git, Mercurial and Subversion.
 
 VCS Gutter is a "friendly fork" that builds on the original work by
 [jisaacks](https://github.com/jisaacks) on [GitGutter](https://github.com/jisaacks/GitGutter).
