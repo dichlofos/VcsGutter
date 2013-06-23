@@ -1,5 +1,7 @@
 import os
 
+import sublime
+
 
 class VcsHelper(object):
     @classmethod
@@ -27,7 +29,7 @@ class VcsHelper(object):
     def vcs_root(cls, directory):
         """Returns the top-level directory of the repository."""
         if os.path.exists(os.path.join(directory,
-            cls.meta_data_directory())):
+                          cls.meta_data_directory())):
             return directory
         else:
             parent = os.path.realpath(os.path.join(directory, os.path.pardir))
@@ -47,8 +49,7 @@ class VcsHelper(object):
 
     @classmethod
     def is_repository(cls, view):
-        if view is None or view.file_name() is None or \
-            cls.vcs_dir(cls.vcs_tree(view)) == False:
+        if view is None or view.file_name() is None or not cls.vcs_dir(cls.vcs_tree(view)):
             return False
         else:
             return True
