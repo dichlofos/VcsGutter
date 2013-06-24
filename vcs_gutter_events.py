@@ -36,6 +36,9 @@ class VcsGutterEvents(sublime_plugin.EventListener):
             ViewCollection.add(view)
 
     def on_activated(self, view):
+        if not _live_mode:
+            return None
+
         ViewCollection.add(view)
 
     def load_settings(self):
