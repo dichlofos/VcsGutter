@@ -52,6 +52,18 @@ class VcsGutterHandler(object):
         encoding = encoding.replace(' ', '')
         return encoding
 
+    @staticmethod
+    def _to_unix(contents):
+        contents = contents.replace(b'\r\n', b'\n')
+        contents = contents.replace(b'\r', b'\n')
+        return contents
+
+    @staticmethod
+    def _write(name, contents):
+        f = open(name, 'wb')
+        f.write(contents)
+        f.close()
+
     def update_buf_file(self):
         chars = self.view.size()
         region = sublime.Region(0, chars)
@@ -63,10 +75,8 @@ class VcsGutterHandler(object):
             # Fallback to utf8-encoding
             contents = self.view.substr(region).encode('utf-8')
 
-        contents = contents.replace(b'\r\n', b'\n')
-        f = open(self.buf_temp_file.name, 'wb')
-        f.write(contents)
-        f.close()
+        contents = VcsGutterHandler._to_unix(contents)
+        VcsGutterHandler._write(self.buf_temp_file.name, contents)
 
     def total_lines(self):
         chars = self.view.size()
@@ -95,12 +105,8 @@ class VcsGutterHandler(object):
             try:
                 if status == 'M':
                     contents, errors = self.run_command(args)
-                    contents = contents.replace(b'\r\n', b'\n')
-                    contents = contents.replace(b'\r', b'\n')
-                    # TODO: remove copy-and-paste here
-                    f = open(self.vcs_temp_file.name, 'wb')
-                    f.write(contents)
-                    f.close()
+                    contents = VcsGutterHandler._to_unix(contents)
+                    VcsGutterHandler._write(self.vcs_temp_file.name, contents)
                     ViewCollection.update_vcs_time(self.view)
             except Exception as e:
                 print ("Unable to write file for diff ", e)
@@ -135,12 +141,16 @@ class VcsGutterHandler(object):
             # this means this file is either:
             # - New and not being tracked *yet*
             # - Or it is a *gitignored* file
-            if ViewCollection.vcs_status(self.view) == 'U':
+            status = ViewCollection.vcs_status(self.view)
+            if status == 'U':
                 # use special region 'unknown'
-                return ([], [], [], inserted)
-            return (inserted, modified, deleted, [])
+                return ([], [], [], inserted, [])
+            elif status == 'I':
+                # use special region 'ignored'
+                return ([], [], [], [], inserted)
+            return (inserted, modified, deleted, [], [])
         else:
-            return (inserted, modified, deleted, [])
+            return (inserted, modified, deleted, [], [])
 
     def diff(self):
         if self.on_disk() and self.vcs_path:
@@ -230,7 +240,7 @@ class HgGutterHandler(VcsGutterHandler):
             '--ignored',
             '--color',
             'never',
-            self.vcs_path,
+            os.path.join(self.vcs_tree, self.vcs_path),
         ]
         return args
 

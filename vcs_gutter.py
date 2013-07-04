@@ -22,7 +22,8 @@ def plugin_loaded():
 
 class VcsGutterCommand(sublime_plugin.WindowCommand):
     region_names = ['deleted_top', 'deleted_bottom',
-                    'deleted_dual', 'inserted', 'changed']
+                    'deleted_dual', 'inserted', 'changed',
+                    'unknown', 'ignored']
 
     def run(self):
         self.view = self.window.active_view()
@@ -31,11 +32,12 @@ class VcsGutterCommand(sublime_plugin.WindowCommand):
             sublime.set_timeout(self.run, 1)
             return
         self.clear_all()
-        inserted, modified, deleted, unknown = ViewCollection.diff(self.view)
+        inserted, modified, deleted, unknown, ignored = ViewCollection.diff(self.view)
         self.lines_removed(deleted)
         self.bind_icons('inserted', inserted)
         self.bind_icons('changed', modified)
         self.bind_icons('unknown', unknown)
+        self.bind_icons('ignored', ignored)
 
     def clear_all(self):
         for region_name in self.region_names:
