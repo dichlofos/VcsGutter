@@ -9,6 +9,7 @@ from vcs_helpers import SvnHelper
 class ViewCollection:
     views = {}
     vcs_times = {}
+    vcs_statuses = {}
     vcs_files = {}
     buf_files = {}
 
@@ -58,9 +59,21 @@ class ViewCollection:
         return time.time() - ViewCollection.vcs_times[key]
 
     @staticmethod
+    def vcs_status(view):
+        key = ViewCollection.get_key(view)
+        if not key in ViewCollection.vcs_statuses:
+            ViewCollection.vcs_statuses[key] = 'M'
+        return ViewCollection.vcs_statuses[key]
+
+    @staticmethod
     def update_vcs_time(view):
         key = ViewCollection.get_key(view)
         ViewCollection.vcs_times[key] = time.time()
+
+    @staticmethod
+    def update_vcs_status(view, status):
+        key = ViewCollection.get_key(view)
+        ViewCollection.vcs_statuses[key] = status
 
     @staticmethod
     def vcs_tmp_file(view):

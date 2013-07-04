@@ -11,7 +11,7 @@ class VcsGutterCommand(sublime_plugin.WindowCommand):
             # and it throws an error because self.view is None.
             # I have only been able to reproduce this in the following scenario:
             # you clicked on FileA in the sidebar (FileA is not previously open)
-            # 
+            #
             # not to open it but to preview it. While previewing it you press
             # ctrl+` to open a console. With the console selected and the
             # unopened FileA preview showing in the window you click on another
@@ -23,16 +23,18 @@ class VcsGutterCommand(sublime_plugin.WindowCommand):
             # Wow that was a really long explanation.
             return
         self.clear_all()
-        inserted, modified, deleted = ViewCollection.diff(self.view)
+        inserted, modified, deleted, unknown = ViewCollection.diff(self.view)
         self.lines_removed(deleted)
         self.lines_added(inserted)
         self.lines_modified(modified)
+        self.lines_unknown(unknown)
 
     def clear_all(self):
         self.view.erase_regions('vcs_gutter_deleted_top')
         self.view.erase_regions('vcs_gutter_deleted_bottom')
         self.view.erase_regions('vcs_gutter_inserted')
         self.view.erase_regions('vcs_gutter_changed')
+        self.view.erase_regions('vcs_gutter_unknown')
 
     def lines_to_regions(self, lines):
         regions = []
@@ -67,6 +69,14 @@ class VcsGutterCommand(sublime_plugin.WindowCommand):
         scope = 'markup.inserted'
         icon = '../VCS Gutter/icons/inserted'
         self.view.add_regions('vcs_gutter_inserted', regions, scope, icon)
+
+    def lines_unknown(self, lines):
+        regions = self.lines_to_regions(lines)
+        scope = 'markup.changed'
+        icon = '../VCS Gutter/icons/unknown'
+        self.view.add_regions('vcs_gutter_unknown', regions, scope, icon)
+
+
 
     def lines_modified(self, lines):
         regions = self.lines_to_regions(lines)

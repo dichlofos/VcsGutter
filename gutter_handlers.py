@@ -46,7 +46,7 @@ class VcsGutterHandler(object):
         except UnicodeError:
             # Fallback to utf8-encoding
             contents = self.view.substr(region).encode('utf-8')
-    
+
         contents = contents.replace('\r\n', '\n')
         contents = contents.replace('\r', '\n')
         f = open(self.buf_temp_file.name, 'w')
@@ -66,16 +66,30 @@ class VcsGutterHandler(object):
         # between updates for performance
         if ViewCollection.vcs_time(self.view) > 5:
             open(self.vcs_temp_file.name, 'w').close()
+            status_args = self.get_status_args()
+            status = None
+            try:
+                # XY file-name
+                contents, errors = self.run_command(status_args)
+                status = self.process_status_line(contents)
+                ViewCollection.update_vcs_status(self.view, status)
+            except Exception as e:
+                # print e
+                pass
+
             args = self.get_diff_args()
             try:
-                contents = self.run_command(args)
-                contents = contents.replace('\r\n', '\n')
-                contents = contents.replace('\r', '\n')
-                f = open(self.vcs_temp_file.name, 'w')
-                f.write(contents)
-                f.close()
-                ViewCollection.update_vcs_time(self.view)
-            except Exception:
+                if status == 'M':
+                    contents, errors = self.run_command(args)
+                    contents = contents.replace('\r\n', '\n')
+                    contents = contents.replace('\r', '\n')
+                    # TODO: remove copy-and-paste here
+                    f = open(self.vcs_temp_file.name, 'w')
+                    f.write(contents)
+                    f.close()
+                    ViewCollection.update_vcs_time(self.view)
+            except Exception as e:
+                # print e
                 pass
 
     def process_diff(self, diff_str):
@@ -108,9 +122,12 @@ class VcsGutterHandler(object):
             # this means this file is either:
             # - New and not being tracked *yet*
             # - Or it is a *gitignored* file
-            return ([], [], [])
+            if ViewCollection.vcs_status(self.view) == 'U':
+                # use special region 'unknown'
+                return ([], [], [], inserted)
+            return (inserted, modified, deleted, [])
         else:
-            return (inserted, modified, deleted)
+            return (inserted, modified, deleted, [])
 
     def diff(self):
         if self.on_disk() and self.vcs_path:
@@ -121,19 +138,20 @@ class VcsGutterHandler(object):
                 self.vcs_temp_file.name,
                 self.buf_temp_file.name,
             ]
-            results = self.run_command(args)
+            results, errors = self.run_command(args)
+            # print errors
             return self.process_diff(results)
         else:
-            return ([], [], [])
+            return ([], [], [], [])
 
     def run_command(self, args):
         startupinfo = None
         if os.name == 'nt':
             startupinfo = subprocess.STARTUPINFO()
             startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-        proc = subprocess.Popen(args, stdout=subprocess.PIPE,
+        proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             startupinfo=startupinfo)
-        return proc.stdout.read()
+        return proc.stdout.read(), proc.stderr.read()
 
 
 class GitGutterHandler(VcsGutterHandler):
@@ -149,6 +167,28 @@ class GitGutterHandler(VcsGutterHandler):
             'HEAD:' + self.vcs_path,
         ]
         return args
+
+    def get_status_args(self):
+        args = [
+            'git',
+            '--git-dir=' + self.vcs_dir,
+            '--work-tree=' + self.vcs_tree,
+            'status',
+            '--ignored',
+            '--porcelain',
+            self.vcs_path,
+        ]
+        return args
+
+    def process_status_line(self, st):
+        st = st[0:2]
+        if st == '!!':
+            return 'I'
+        elif st == '??':
+            return 'U'
+        else:
+            return 'M'
+            # all other states we may consider as modified
 
 
 class HgGutterHandler(VcsGutterHandler):
