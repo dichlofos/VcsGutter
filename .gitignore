@@ -17,6 +17,7 @@ develop-eggs
 .installed.cfg
 lib
 lib64
+VcsGutter.sublime-package
 
 # Installer logs
 pip-log.txt

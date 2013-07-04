@@ -2,13 +2,22 @@ import os
 import sublime
 import subprocess
 import re
-import vcs_helpers
-from view_collection import ViewCollection
+
+try:
+    from . import vcs_helpers
+except ValueError:
+    import vcs_helpers
+
+try:
+    from .view_collection import ViewCollection
+except ValueError:
+    from view_collection import ViewCollection
 
 
 class VcsGutterHandler(object):
-    def __init__(self, view):
+    def __init__(self, view, exc_path):
         self.view = view
+        self.exc_path = exc_path
         self.vcs_temp_file = ViewCollection.vcs_tmp_file(self.view)
         self.buf_temp_file = ViewCollection.buf_tmp_file(self.view)
 
@@ -26,30 +35,36 @@ class VcsGutterHandler(object):
         return self.vcs_path
 
     def reset(self):
-        if self.on_disk() and self.vcs_path:
+        if self.on_disk() and self.vcs_path and self.view.window() is not None:
             self.view.window().run_command('vcs_gutter')
+
+    def _get_view_encoding(self):
+        # get encoding and clean it for python ex: "Western (ISO 8859-1)"
+        # original author for this fix : https://github.com/maelnor/
+        pattern = re.compile(r'.+\((.*)\)')
+        encoding = self.view.encoding()
+        if pattern.match(encoding):
+            encoding = pattern.sub(r'\1', encoding)
+
+        encoding = encoding.replace('with BOM', '')
+        encoding = encoding.replace('Windows', 'cp')
+        encoding = encoding.replace('-', '_')
+        encoding = encoding.replace(' ', '')
+        return encoding
 
     def update_buf_file(self):
         chars = self.view.size()
         region = sublime.Region(0, chars)
 
-        # get encoding and clean it for python ex: "Western (ISO 8859-1)"
-        pattern = re.compile(r'.+\((.*)\)')
-        encoding = self.view.encoding()
-
-        if pattern.match(encoding):
-            encoding = pattern.sub(r'\1', self.view.encoding())
-
         # Try conversion
         try:
-            contents = self.view.substr(region).encode(encoding.replace(' ', ''))
+            contents = self.view.substr(region).encode(self._get_view_encoding())
         except UnicodeError:
             # Fallback to utf8-encoding
             contents = self.view.substr(region).encode('utf-8')
 
-        contents = contents.replace('\r\n', '\n')
-        contents = contents.replace('\r', '\n')
-        f = open(self.buf_temp_file.name, 'w')
+        contents = contents.replace(b'\r\n', b'\n')
+        f = open(self.buf_temp_file.name, 'wb')
         f.write(contents)
         f.close()
 
@@ -81,22 +96,21 @@ class VcsGutterHandler(object):
             try:
                 if status == 'M':
                     contents, errors = self.run_command(args)
-                    contents = contents.replace('\r\n', '\n')
-                    contents = contents.replace('\r', '\n')
+                    contents = contents.replace(b'\r\n', b'\n')
+                    contents = contents.replace(b'\r', b'\n')
                     # TODO: remove copy-and-paste here
-                    f = open(self.vcs_temp_file.name, 'w')
+                    f = open(self.vcs_temp_file.name, 'wb')
                     f.write(contents)
                     f.close()
                     ViewCollection.update_vcs_time(self.view)
             except Exception as e:
-                # print e
-                pass
+                print ("Unable to write file for diff ", e)
 
     def process_diff(self, diff_str):
         inserted = []
         modified = []
         deleted = []
-        pattern = re.compile(r'(\d+),?(\d*)(.)(\d+),?(\d*)')
+        pattern = re.compile(b'(\d+),?(\d*)(.)(\d+),?(\d*)')
         lines = diff_str.splitlines()
         for line in lines:
             m = pattern.match(line)
@@ -108,11 +122,11 @@ class VcsGutterHandler(object):
                 line_end = int(m.group(5))
             else:
                 line_end = line_start
-            if kind == 'c':
+            if kind == b'c':
                 modified += range(line_start, line_end + 1)
-            elif kind == 'a':
+            elif kind == b'a':
                 inserted += range(line_start, line_end + 1)
-            elif kind == 'd':
+            elif kind == b'd':
                 if line == 1:
                     deleted.append(line_start)
                 else:
@@ -150,7 +164,7 @@ class VcsGutterHandler(object):
             startupinfo = subprocess.STARTUPINFO()
             startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
         proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-            startupinfo=startupinfo)
+                                startupinfo=startupinfo)
         return proc.stdout.read(), proc.stderr.read()
 
 
@@ -160,7 +174,7 @@ class GitGutterHandler(VcsGutterHandler):
 
     def get_diff_args(self):
         args = [
-            'git',
+            self.exc_path,
             '--git-dir=' + self.vcs_dir,
             '--work-tree=' + self.vcs_tree,
             'show',
@@ -170,7 +184,7 @@ class GitGutterHandler(VcsGutterHandler):
 
     def get_status_args(self):
         args = [
-            'git',
+            self.exc_path,
             '--git-dir=' + self.vcs_dir,
             '--work-tree=' + self.vcs_tree,
             'status',
@@ -197,7 +211,7 @@ class HgGutterHandler(VcsGutterHandler):
 
     def get_diff_args(self):
         args = [
-            'hg',
+            self.exc_path,
             '--repository',
             self.vcs_tree,
             'cat',
@@ -212,7 +226,7 @@ class SvnGutterHandler(VcsGutterHandler):
 
     def get_diff_args(self):
         args = [
-            'svn',
+            self.exc_path,
             'cat',
             os.path.join(self.vcs_tree, self.vcs_path),
         ]

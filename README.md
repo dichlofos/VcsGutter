@@ -1,7 +1,9 @@
 ## VCS Gutter
 
-A Sublime Text 2 plugin to show an icon in the gutter area indicating whether a line has been inserted, modified or deleted relative to the version of the file in the local source
-code repository. Supports Git and Mercurial.
+**Now supporting Sublime Text 3.**
+
+VCS Gutter is a plugin for Sublime Text 2 and 3 that displays an icon in the gutter area indicating whether a line has been inserted, modified or deleted relative to the version of the file in the local source
+code repository. Supports Git, Mercurial and Subversion.
 
 VCS Gutter is a "friendly fork" that builds on the original work by
 [jisaacks](https://github.com/jisaacks) on [GitGutter](https://github.com/jisaacks/GitGutter).
@@ -18,16 +20,21 @@ Or you can clone this repo into your *Sublime Text 2/Packages*
 *Mac OS X*
 ```shell
 cd ~/Library/Application\ Support/Sublime\ Text\ 2/Packages/
-git clone git@github.com:bradsokol/VcsGutter.git VCS\ Gutter
+git clone git://github.com/bradsokol/VcsGutter.git "VCS Gutter"
 ```
 
 *Ubuntu*
 ```shell
 cd ~/.config/sublime-text-2/Packages
-git clone git@github.com:bradsokol/VcsGutter.git VCS\ Gutter
+git clone git://github.com/bradsokol/VcsGutter.git "VCS Gutter"
 ```
 
 *Windows*
+
+```shell
+cd %USERPROFILE%\AppData\Roaming\Sublime Text 2\Packages
+git clone git://github.com/bradsokol/VcsGutter.git "VCS Gutter"
+```
 
 VcsGutter assumes that the `git`, `hg`, `svn` and `diff` commands are availible on the command line. The installers for these tools may not add the directory containing the executables to the PATH environment variable. If not, you must add the appropriate directory to your PATH variable.
 
@@ -38,12 +45,26 @@ For example:
 
 ### Settings
 
-By default it is set to live mode, which runs everytime the file is modified. If you experience performance issues you can set it to only run on save by adding an entry to your **Preferences.sublime-text** file, just set:
+Settings are accessed via the <kbd>Preferences</kbd> > <kbd>Package Settings</kbd> > <kbd>VCS Gutter</kbd> menu.
 
-```json
-"vcs_gutter_live_mode": false
+Default settings should not be modified, as they are overwritten when VCS Gutter is updated. Instead, you should copy the relevant settings into VCS Gutter's user settings file.
+
+#### Live Mode
+By default, VCS Gutter detects changes every time the file is modified. If you experience performance issues you can set it to only run on save by setting `live_mode` to `false`.
+
+#### Executable Path
+If your VCS executable (git, hg, or svn) is not in your PATH, you may need to set the `vcs_paths` setting to the location of your executables:
+```js
+{
+    "vcs_paths": {
+        "git": "git",
+        "hg": "/usr/local/bin/hg",
+        "svn": "svn"
+    }
+}
 ```
 
+#### Colors
 The colors come from your *color scheme* **.tmTheme** file. If your color scheme file does not define the appropriate colors (or you want to edit them) add an entry that looks like this:
 
 ```xml
