@@ -219,6 +219,32 @@ class HgGutterHandler(VcsGutterHandler):
         ]
         return args
 
+    def get_status_args(self):
+        args = [
+            self.exc_path,
+            '--repository',
+            self.vcs_tree,
+            'status',
+            '--added',
+            '--modified',
+            '--unknown',
+            '--ignored',
+            '--color',
+            'never',
+            self.vcs_path,
+        ]
+        return args
+
+    def process_status_line(self, st):
+        st = st[0:1]
+        if st == 'I':
+            return 'I'
+        elif st == '?':
+            return 'U'
+        else:
+            return 'M'
+            # all other states we may consider as modified
+
 
 class SvnGutterHandler(VcsGutterHandler):
     def get_vcs_helper(self):
