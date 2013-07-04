@@ -84,7 +84,6 @@ class VcsGutterHandler(object):
             status_args = self.get_status_args()
             status = None
             try:
-                # XY file-name
                 contents, errors = self.run_command(status_args)
                 status = self.process_status_line(contents)
                 ViewCollection.update_vcs_status(self.view, status)
@@ -257,3 +256,21 @@ class SvnGutterHandler(VcsGutterHandler):
             os.path.join(self.vcs_tree, self.vcs_path),
         ]
         return args
+
+    def get_status_args(self):
+        args = [
+            self.exc_path,
+            'status',
+            os.path.join(self.vcs_tree, self.vcs_path),
+        ]
+        return args
+
+    def process_status_line(self, st):
+        st = st[0:1]
+        if st == 'I':
+            return 'I'
+        elif st == '?':
+            return 'U'
+        else:
+            return 'M'
+            # all other states we may consider as modified
